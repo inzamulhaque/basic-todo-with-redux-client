@@ -1,36 +1,58 @@
-import { ITodo, removeTodo, toggleComplete } from "@/redux/features/todoSlice";
+import { ITodo, removeTodo } from "@/redux/features/todoSlice";
 import { Button } from "../ui/button";
 import { useAppDispatch } from "@/redux/hooks";
+import { useToggleTaskMutation } from "@/redux/api/api";
+
+export interface ITodoProp extends ITodo {
+  _id: string;
+  priority: "Low" | "Medium" | "High";
+}
 
 interface ITodoCardProps {
-  todo: ITodo;
+  todo: ITodoProp;
 }
 
 const TodoCard = ({ todo }: ITodoCardProps) => {
   const dispatch = useAppDispatch();
 
+  const [toggleTodo] = useToggleTaskMutation();
+
   const toggleState = (id: string) => {
-    dispatch(toggleComplete(id));
+    const toggle = !todo?.isCompleted;
+    const todoObj = { ...todo, isCompleted: toggle };
+    toggleTodo(todoObj);
   };
 
   return (
     <>
       <div className="bg-white rounded-md flex justify-between items-center p-3 border">
         <input
-          onChange={() => toggleState(todo.id)}
+          onChange={() => toggleState(todo._id)}
+          className="mr-3"
           type="checkbox"
           name="complete"
           id="complete"
+          defaultChecked={todo?.isCompleted}
         />
-        <p className="font-semibold">{todo?.title}</p>
-        <div>
+        <p className="font-semibold flex-1">{todo?.title}</p>
+        <div className="flex-1 flex items-center gap-2">
+          <div
+            className={`size-3 rounded-full ${
+              todo?.priority === "High" ? "bg-red-500" : ""
+            } ${todo?.priority === "Medium" ? "bg-blue-500" : ""} ${
+              todo?.priority === "Low" ? "bg-green-500" : ""
+            }`}
+          ></div>
+          <p>{todo?.priority}</p>
+        </div>
+        <div className="flex-1">
           {todo?.isCompleted ? (
             <p className="text-green-500">Done</p>
           ) : (
             <p className="text-red-500">Pending</p>
           )}
         </div>
-        <p>{todo?.description}</p>
+        <p className="flex-[2]">{todo?.description}</p>
         <div className="space-x-5">
           <Button
             className="bg-red-500"
